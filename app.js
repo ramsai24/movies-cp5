@@ -46,7 +46,7 @@ const convertSankeToCamel1 = (dbObject) => {
 //API 1
 
 app.get("/movies/", async (request, response) => {
-  const sqlQuery = `SELECT movie_name FROM movie;`;
+  const sqlQuery = `SELECT movie_name  FROM movie;`;
 
   const moviesList = await db.all(sqlQuery);
   response.send(
@@ -114,5 +114,62 @@ app.put("/movies/:moviesId/", async (request, response) => {
 
   await db.run(sqlQuery);
 
-  response.send("MovieDetails Updated");
+  response.send("Movie Details Updated");
 });
+
+//API 5
+app.delete("/movies/:movieId/", async (request, response) => {
+  const { movieId } = request.params;
+  console.log(movieId);
+
+  const sqlQuery = `
+    DELETE FROM movie WHERE movie_id = ${movieId};`;
+
+  await db.run(sqlQuery);
+  response.send("Movie Removed");
+});
+
+const convertSankeToCamelDirectorsTable = (dbObject) => {
+  return {
+    directorId: dbObject.director_id,
+    directorName: dbObject.director_name,
+  };
+};
+
+//API 6
+app.get("/directors/", async (request, response) => {
+  const sqlQuery = `
+    SELECT * FROM director;`;
+
+  const directorList = await db.all(sqlQuery);
+
+  response.send(
+    directorList.map((dbObjects) =>
+      convertSankeToCamelDirectorsTable(dbObjects)
+    )
+  );
+});
+
+const convertCamelToSankeMoviesList = (dbObject) => {
+  return {
+    movieName: dbObject.movie_name,
+  };
+};
+//API 7
+app.get("/directors/:directorId/movies/", async (request, response) => {
+  const { directorId } = request.params;
+  console.log(directorId);
+
+  const sqlQuery = `
+  SELECT movie_name 
+  FROM movie
+  WHERE director_id = ${directorId};`;
+
+  const moviesList = await db.all(sqlQuery);
+
+  response.send(
+    moviesList.map((dbObjects) => convertCamelToSankeMoviesList(dbObjects))
+  );
+});
+
+module.exports = app;
